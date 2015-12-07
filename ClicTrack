@@ -35,35 +35,59 @@ def color(event, x, y, flags,param):
         
        
          
-def track(imgOriginal,h,s,v,compteur,tabcX,tabcY):
+def track(imgOriginal,h,s,v,compteur,n,tabcX,tabcY):
     objectDetected=False;  #booleen = True si un objet est detecte
-    maxi=4
-    if compteur>maxi:
+    
+    if compteur>n-1:
         compteur=0
    
     
     #Cree une plage de couleurs autour de la couleur de la couleur HSV entree en parametre de la fonction
-    if h>10:
+    if h-10>0:
         hLow=h-10
     else :
         hLow=0
     
-    if h>170:
-        hHigh=180
-    else :
+    if h+10<180:
         hHigh=h+10
+    else :
+        hHigh=180
     
+    if s+20<255:
+        sHigh=s+20
+    else:
+        sHigh=255
+        
+    if s-20>0:
+        sLow=s-20
+    else:
+        sLow=0
+        
+    if v+20<255:
+        vHigh=v+20
+    else:
+        vHigh=255
+        
+    if v-20>0:
+        vLow=v-20
+    else:
+        vLow=0
     
-    colorMin=(hLow,s,v)
-    colorMax=(hHigh,s,v)
+    colorMin=(hLow,sLow,vLow)
+    colorMax=(hHigh,sHigh,vHigh)
     
+    #Couleur complementaire de la couleur selectionnee
+    
+     
     #Convertit en HSV image entree en parametre de la fonction
     imgHSV = cv2.cvtColor(imgOriginal, cv2.COLOR_BGR2HSV)
     
-    if hLow>0 and hHigh >0 and s>0 and v>0:
+    if hLow>0 and sLow>0 and vLow>0:
         
-        #Applique un filtre sur la plage de couleur donnee
+        #Applique un filtre sur la plage de couleur donnee 
         imgThresh = cv2.inRange(imgHSV, colorMin, colorMax)
+        
+
      
         #Floute pour avoir moins de bruit
         imgThresh = cv2.GaussianBlur(imgThresh, (61, 61), 2)                 
@@ -116,7 +140,7 @@ def track(imgOriginal,h,s,v,compteur,tabcX,tabcY):
     return compteur, tabcX,tabcY
 if __name__ == '__main__':
     
-    
+    n=5
     cap = cv2.VideoCapture(0)#Ouvre flux video webCam
     click=False #initialise booleen click gauche 
     x=-1
@@ -124,8 +148,8 @@ if __name__ == '__main__':
     h,s,v=-1,-1,-1
     par=[click,x,y,h,s,v]
     compteur=0
-    tabcX=[0, 0, 0, 0, 0]
-    tabcY=[0, 0, 0, 0, 0]
+    tabcX=[0]*n
+    tabcY=[0]*n
     
     
     while (True):
@@ -145,9 +169,8 @@ if __name__ == '__main__':
             cv2.circle(frame, (par[1],par[2]),1, (0, 255, 0), 2)
             
             #Appelle fonction track pour tracker couleur pixel selectionne
-            compteur, tabcX, tabcY=track(frame,par[3],par[4],par[5],compteur,tabcX,tabcY)
-            print compteur
-            print tabcX
+            compteur, tabcX, tabcY=track(frame,par[3],par[4],par[5],compteur,n,tabcX,tabcY)
+            
            
             
             #Affiche image
