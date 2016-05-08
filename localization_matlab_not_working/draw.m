@@ -1,0 +1,44 @@
+function draw(rtr,xdr,xvid1,xvid2,t)
+rtr(abs(rtr)>1000)=1000;
+xdr(abs(xdr)>1000)=1000;
+xvid1(abs(xvid1)>60)=60;
+xvid2(abs(xvid2)>60)=60;
+
+subplot(3,3,1);
+hold on;
+plot(t,rtr(1,:),'.r');
+plot(t,xdr(1,:),'.b');
+title('x');
+subplot(3,3,2);
+hold on;
+plot(t,rtr(2,:),'.r');
+plot(t,xdr(2,:),'.b');
+title('y');
+subplot(3,3,3);
+hold on;
+plot(t,-rtr(3,:),'.r');
+plot(t,-xdr(3,:),'.b');
+title('z');
+subplot(3,3,4);
+hold on;
+plot(t,-xdr(3,:)+rtr(3,:),'.r');
+plot(t,xdr(1,:)-rtr(1,:),'.b');
+plot(t,xdr(2,:)-rtr(2,:),'.g');
+title('errors (m)');
+subplot(3,3,5);
+hold on;
+plot(t,xvid1(1,:),'.b');
+title('error yaw 1 (°)');
+subplot(3,3,6);
+hold on;
+plot(t,xvid2(1,:),'.b');
+title('error yaw 2 (°)');
+subplot(3,3,7);
+hold on;
+plot(t,xvid1(2,:),'.b');
+title('error pitch 1 (°)');
+subplot(3,3,8);
+hold on;
+plot(t,xvid2(2,:),'.b');
+title('error pitch 2 (°)');
+end
