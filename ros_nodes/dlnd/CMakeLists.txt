@@ -17,7 +17,8 @@ add_custom_target(dummy_${PROJECT_NAME} SOURCES ${extra_files})
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 #SET(IbexLib_USE_STATIC 1) # force ibex static linking
-#SET(IbexLib_DIR CMakeModules)
+#SET(OpenCV_DIR /usr/local/OpenCV-3.0/share/OpenCV)
+SET(OpenCV_DIR /usr/local/opencv310/share/OpenCV)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
@@ -25,6 +26,9 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   geometry_msgs
   message_generation
+  tf
+ # OpenCV REQUIRED PATHS /usr/local/OpenCV-3.0/share/OpenCV
+ OpenCV REQUIRED PATHS /usr/local/opencv310/share/OpenCV
 )
 
 ## System dependencies are found with CMake's conventions
@@ -130,7 +134,7 @@ generate_messages(
 catkin_package(
  INCLUDE_DIRS include
 # LIBRARIES turret
- CATKIN_DEPENDS roscpp std_msgs geometry_msgs visualization_msgs message_runtime
+ CATKIN_DEPENDS roscpp rospy tf std_msgs geometry_msgs visualization_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -144,6 +148,8 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  #/usr/local/OpenCV-3.0/include
+  /usr/local/opencv310/include
   /usr/local/include/ibex
 )
 
@@ -170,7 +176,9 @@ add_library(localizer STATIC
 add_executable(drone_node src/drone.cpp)
 add_executable(turret_node src/turret.cpp)
 add_executable(localization_node src/localization.cpp)
-add_executable(kalman_node src/kalman.cpp)
+#add_executable(kalman_node src/kalman.cpp)
+add_executable(talkerErreurPixel src/main.cpp)
+add_executable(observer_node src/observer.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -202,9 +210,16 @@ target_link_libraries(localizer
   ibex
   prim
 )
-
-target_link_libraries(kalman_node
+target_link_libraries(observer_node
   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(talkerErreurPixel
+  ${catkin_LIBRARIES}
+  #/usr/local/OpenCV-3.0/lib
+  /usr/local/opencv310/lib
+  opencv_core
+  opencv_highgui
 )
 
 #############

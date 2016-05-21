@@ -10,8 +10,8 @@
 #define D_TBL std::vector<std::vector<double>>
 
 const double EANGLE1 =  2*3.1415926/180;
-const double EANGLE2 =  5*3.1415926/180;
-const double EPOS = 0.5;
+const double EANGLE2 =  2*3.1415926/180;
+const double EPOS = 0.1;
 const double EPS = 1;
 
 static int NBTURRET;
@@ -33,17 +33,17 @@ int main(int argc, char **argv){
     std::list<ros::Subscriber> lstSub;
 
     initSubscribers(n, lstSub);
-    ros::Publisher est_pub = n.advertise<visualization_msgs::Marker>("estimation", 1000);
-    ros::Publisher dr_est_pub = n.advertise<visualization_msgs::Marker>("drone_estimation", 1000);
+    ros::Publisher est_pub = n.advertise<visualization_msgs::Marker>("/box_estimation", 1000);
+    ros::Publisher dr_est_pub = n.advertise<visualization_msgs::Marker>("/drone_estimation", 1000);
     ros::Rate loop_rate(100);
 
     std::vector<Localizer*>  lstCon;
     std::vector<ibex::CtcCompo*> lstCtc;
     ibex::CtcCompo *C = NULL;
     initContractor(&C, lstCon, lstCtc);
-    ibex::Function f1("f","t","p","et","ep","cos(t)*cos(p)*cos(et)*cos(ep)+cos(et)*sin(ep)*(-cos(f)*sin(p)+sin(t)*cos(p)*sin(f))-sin(et)*(sin(p)*sin(f)+sin(t)*cos(p)*cos(f))");
-    ibex::Function f2("f","t","p","et","ep","cos(t)*sin(p)*cos(et)*cos(ep)+cos(et)*sin(ep)*(cos(f)*cos(p)+sin(t)*sin(p)*sin(f))-sin(et)*(-cos(p)*sin(f)+sin(t)*sin(p)*cos(f))");
-    ibex::Function f3("f","t","p","et","ep","-sin(t)*cos(et)*cos(ep)+cos(et)*sin(ep)*cos(t)*sin(f)-sin(et)*cos(t)*cos(f)");
+    ibex::Function f1("p","t","f","ep","et","cos(t)*cos(p)*cos(et)*cos(ep)+cos(et)*sin(ep)*(-cos(f)*sin(p)+sin(t)*cos(p)*sin(f))-sin(et)*(sin(p)*sin(f)+sin(t)*cos(p)*cos(f))");
+    ibex::Function f2("p","t","f","ep","et","cos(t)*sin(p)*cos(et)*cos(ep)+cos(et)*sin(ep)*(cos(f)*cos(p)+sin(t)*sin(p)*sin(f))-sin(et)*(-cos(p)*sin(f)+sin(t)*sin(p)*cos(f))");
+    ibex::Function f3("p","t","f","ep","et","-sin(t)*cos(et)*cos(ep)+cos(et)*sin(ep)*cos(t)*sin(f)-sin(et)*cos(t)*cos(f)");
     ibex::IntervalVector res(3);
     res[0] = ibex::Interval(-50, 50);
     res[1] = ibex::Interval(-50, 50);
@@ -65,7 +65,7 @@ int main(int argc, char **argv){
         msgp.type = visualization_msgs::Marker::SPHERE;
         msgp.pose.position.x = res[0].mid();
         msgp.pose.position.y = res[1].mid();
-        msgp.pose.position.z = res[2].mid();
+        msgp.pose.position.z = -res[2].mid();
         msgp.scale.x = 0.2;
         msgp.scale.y = 0.2;
         msgp.scale.z = 0.2;
@@ -88,13 +88,13 @@ void callback_Pose(const dlnd::poseMsg::ConstPtr& msg){
     tf::Quaternion qg;
     tf::quaternionMsgToTF(msg->pos, qg);
     tf::Matrix3x3 m(qg);
-    m.getRPY(angles[id-1][0],angles[id-1][1],angles[id-1][2]);
+    m.getRPY(angles[id-1][2],angles[id-1][1],angles[id-1][0]);
 }
 
 void callback_Cam(const dlnd::camMsg::ConstPtr& msg){
     int id = msg->id;
-    angles[id-1][3] = msg->etheta;
-    angles[id-1][4] = msg->epsi;
+    angles[id-1][3] = msg->epsi;
+    angles[id-1][4] = msg->etheta;
 }
 
 ibex::IntervalVector SIVIA(ibex::CtcCompo& C, const ibex::IntervalVector& X0, const int eps){
@@ -141,8 +141,8 @@ ibex::IntervalVector getFirstBox(ibex::Function &f1, ibex::Function &f2, ibex::F
         evInt(var[0],angles[i][0],EANGLE1);
         evInt(var[1],angles[i][1],EANGLE1);
         evInt(var[2],angles[i][2],EANGLE1);
-        evInt(var[3],0,EANGLE2);
-        evInt(var[4],0,EANGLE2);
+        evInt(var[3],angles[i][3],EANGLE2);
+        evInt(var[4],angles[i][4],EANGLE2);
         X0[6*i+3] = positions[i][0];
         X0[6*i+4] = positions[i][1];
         X0[6*i+5] = positions[i][2];
@@ -233,7 +233,7 @@ void drawBox(ibex::IntervalVector &res, ros::Publisher &pub){
     msg.type = visualization_msgs::Marker::CUBE;
     msg.pose.position.x = res[0].mid();
     msg.pose.position.y = res[1].mid();
-    msg.pose.position.z = res[2].mid();
+    msg.pose.position.z = -res[2].mid();
     msg.scale.x = res[0].diam();
     msg.scale.y = res[1].diam();
     msg.scale.z = res[2].diam();
