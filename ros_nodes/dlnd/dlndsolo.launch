@@ -1,0 +1,32 @@
+<launch>
+
+	<group ns = "turret1">
+
+		<node name="cam" pkg="dlnd" type="talkerErreurPixel" />
+			<param name="inputCamera" type="int" value="1" />
+			<param name="idCamera" type="int" value="1" />
+
+		<arg name="razor_config_file" default="$(find razor_imu_9dof)/config/my_razor.yaml"/>
+  		<node name="imu" pkg="razor_imu_9dof" type="imu_node.py" output="screen">
+   			<rosparam file="$(arg razor_config_file)" command="load"/>
+  		</node>
+			
+
+		<node name="imu2loc" pkg="dlnd" type="listenerImu" />
+
+		<!--node name="turretServo1" pkg="dlnd" type="listenerCommandServo.py" /-->
+
+	</group>
+
+	<!--group ns = "turret2">
+
+		<node name="turret2" pkg="dlnd" type="talkerErreurPixel" />
+			<param name="inputCamera" type="int" value="1" />
+			<param name="idCamera" type="int" value="2" />
+
+		<node name="turretServo1" pkg="dlnd" type="listenerCommandServo.py" />
+
+	</group-->
+
+  
+</launch>
